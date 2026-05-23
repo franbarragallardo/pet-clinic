@@ -1,0 +1,21 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - feature/devsecops-pipeline
+
+jobs:
+  pipeline-test:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Clonación del repositorio
+        uses: actions/checkout@v4
+
+      - name: Validar ejecución del pipeline
+        run: echo "Pipeline DevSecOps ejecutado correctamente"
+
+      - name: Verificar Java
+        run: java -version
