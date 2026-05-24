@@ -40,7 +40,7 @@ jobs:
         with:
           output: codeql-results
 
-      - name: Bloquear pipeline por vulnerabilidades SAST Medium High Critical
+      - name: Bloquear pipeline por hallazgos SAST CodeQL
         run: |
           echo "Buscando resultados SARIF de CodeQL..."
           SARIF_FILE=$(find codeql-results -name "*.sarif" | head -n 1)
@@ -52,27 +52,13 @@ jobs:
 
           echo "Archivo SARIF encontrado: $SARIF_FILE"
 
-          COUNT=$(jq '
-            [
-              .runs[] as $run
-              | $run.results[]?
-              | .ruleId as $ruleId
-              | (
-                  $run.tool.driver.rules[]
-                  | select(.id == $ruleId)
-                  | .properties."security-severity"? // "0"
-                  | tonumber
-                ) as $sev
-              | select($sev >= 5.0)
-            ]
-            | length
-          ' "$SARIF_FILE")
+          COUNT=$(jq '[.runs[].results[]?] | length' "$SARIF_FILE")
 
-          echo "Cantidad de vulnerabilidades SAST Medium/High/Critical encontradas: $COUNT"
+          echo "Cantidad de hallazgos SAST CodeQL encontrados: $COUNT"
 
           if [ "$COUNT" -gt 0 ]; then
-            echo "El pipeline se detiene por vulnerabilidades SAST Medium/High/Critical."
+            echo "El pipeline se detiene porque CodeQL encontró hallazgos SAST."
             exit 1
+          else
+            echo "No se detectaron hallazgos SAST."
           fi
-
-        
