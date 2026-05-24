@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Clonación del repositorio
         uses: actions/checkout@v4
 
@@ -20,17 +19,17 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Dar permisos a Maven Wrapper
-        run: chmod +x ./mvnw
+      - name: Dar permisos a Gradle Wrapper
+        run: chmod +x ./gradlew
 
-      - name: Compilar proyecto
-        run: ./mvnw clean verify -DskipTests
+      - name: Compilar proyecto con Gradle
+        run: ./gradlew clean build -x test
 
       - name: SAST con SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./mvnw sonar:sonar \
+          ./gradlew sonarqube \
             -Dsonar.projectKey=franbarraagallardo_pet-clinic \
             -Dsonar.organization=franbarraagallardo \
             -Dsonar.host.url=https://sonarcloud.io
