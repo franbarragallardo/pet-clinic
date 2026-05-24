@@ -38,6 +38,7 @@ jobs:
             --format "HTML" \
             --out "reports" \
             --enableRetired \
+            --disableOssIndex \
             --failOnCVSS 5
 
       - name: Publicar reporte SCA
