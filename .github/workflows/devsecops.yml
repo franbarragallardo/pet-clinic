@@ -1,12 +1,4 @@
-name: Pipeline
-
-on:
-  push:
-    branches:
-      - feature/devsecops-pipeline
-
-jobs:
-  devsecops:
+  SCA:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,6 +11,26 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-cache-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-cache-${{ runner.os }}-
+
+      - name: Cache OWASP Dependency Check
+        uses: actions/cache@v4
+        with:
+          path: |
+            dependency-check
+            ~/.dependency-check
+          key: dependency-check-cache-${{ runner.os }}
+          restore-keys: |
+            dependency-check-cache-${{ runner.os }}-
+
       - name: Dar permisos a Gradle Wrapper
         run: chmod +x ./gradlew
 
@@ -27,8 +39,12 @@ jobs:
 
       - name: Instalar OWASP Dependency Check
         run: |
-          curl -L -o dependency-check.zip https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
-          unzip dependency-check.zip
+          if [ ! -f dependency-check/bin/dependency-check.sh ]; then
+            curl -L -o dependency-check.zip https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
+            unzip dependency-check.zip
+          else
+            echo "OWASP Dependency Check encontrado en cache"
+          fi
 
       - name: Ejecutar SCA con OWASP Dependency Check
         run: |
