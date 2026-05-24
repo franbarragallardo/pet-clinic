@@ -9,6 +9,11 @@ jobs:
   devsecops:
     runs-on: ubuntu-latest
 
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
     steps:
       - name: Clonación del repositorio
         uses: actions/checkout@v4
@@ -19,17 +24,16 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: java
+
       - name: Dar permisos a Gradle Wrapper
         run: chmod +x ./gradlew
 
       - name: Compilar proyecto con Gradle
         run: ./gradlew clean build -x test
 
-      - name: SAST con SonarCloud
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          ./gradlew sonarqube \
-            -Dsonar.projectKey=franbarraagallardo_pet-clinic \
-            -Dsonar.organization=franbarraagallardo \
-            -Dsonar.host.url=https://sonarcloud.io
+      - name: Ejecutar análisis SAST con CodeQL
+        uses: github/codeql-action/analyze@v4
