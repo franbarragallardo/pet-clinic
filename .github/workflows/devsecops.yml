@@ -1,7 +1,22 @@
+name: Pipeline Devsecops
+
+on:
+  push:
+    branches:
+      - feature/devsecops-pipeline
+
+jobs:
+
   SCA:
     runs-on: ubuntu-latest
 
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
     steps:
+
       - name: Clonación del repositorio
         uses: actions/checkout@v4
 
@@ -45,6 +60,9 @@
           else
             echo "OWASP Dependency Check encontrado en cache"
           fi
+
+      - name: Crear directorio de reportes
+        run: mkdir -p reports
 
       - name: Ejecutar SCA con OWASP Dependency Check
         run: |
