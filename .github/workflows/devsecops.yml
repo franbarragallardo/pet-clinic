@@ -37,19 +37,31 @@ jobs:
 
       - name: Ejecutar análisis SAST con CodeQL
         uses: github/codeql-action/analyze@v4
-     
-      - name: Validar vulnerabilidades SAST
+      
+      - name: Validar vulnerabilidades SAST Medium High Critical
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sleep 20
+          echo "Esperando publicación de resultados CodeQL..."
+          sleep 30
 
           ALERTS=$(gh api \
-            /repos/${{ github.repository }}/code-scanning/alerts \
-            --jq '.[] | select(.rule.severity=="medium" or .rule.severity=="high" or .rule.severity=="critical")')
+            "/repos/${{ github.repository }}/code-scanning/alerts?state=open&branch=${{ github.ref_name }}" \
+            --jq '.[] | select(
+              .rule.security_severity_level=="medium" or
+              .rule.security_severity_level=="high" or
+              .rule.security_severity_level=="critical" or
+              .rule.severity=="medium" or
+              .rule.severity=="high" or
+              .rule.severity=="critical"
+            ) | .rule.description')
 
-          if [ ! -z "$ALERTS" ]; then
-            echo "Se detectaron vulnerabilidades Medium/High/Critical"
+          if [ -n "$ALERTS" ]; then
+            echo "Se detectaron vulnerabilidades SAST Medium/High/Critical:"
+            echo "$ALERTS"
             exit 1
+          else
+            echo "No se detectaron vulnerabilidades SAST Medium/High/Critical."
           fi
+
         
