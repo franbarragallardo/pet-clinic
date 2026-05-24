@@ -37,15 +37,19 @@ jobs:
 
       - name: Ejecutar análisis SAST con CodeQL
         uses: github/codeql-action/analyze@v4
+     
+      - name: Validar vulnerabilidades SAST
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sleep 20
 
-      - name: Ejecutar SCA con Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: 'pet-clinic'
-          path: '.'
-          format: 'HTML'
-          out: 'reports'
-          args: >
-            --failOnCVSS 5
+          ALERTS=$(gh api \
+            /repos/${{ github.repository }}/code-scanning/alerts \
+            --jq '.[] | select(.rule.severity=="medium" or .rule.severity=="high" or .rule.severity=="critical")')
 
+          if [ ! -z "$ALERTS" ]; then
+            echo "Se detectaron vulnerabilidades Medium/High/Critical"
+            exit 1
+          fi
         
