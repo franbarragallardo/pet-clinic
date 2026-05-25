@@ -1,4 +1,4 @@
-name: Pipeline Devsecops
+name: Pipeline DevSecOps - Docker Build
 
 on:
   push:
@@ -6,49 +6,27 @@ on:
       - feature/devsecops-pipeline
 
 jobs:
-
-  SCA:
+  DOCKER_BUILD:
     runs-on: ubuntu-latest
 
-    permissions:
-      actions: read
-      contents: read
-
     steps:
-      - name: Checkout repository
+      - name: Clonación del repositorio
         uses: actions/checkout@v4
 
-      - name: Set Up JDK
+      - name: Configurar Java
         uses: actions/setup-java@v4
         with:
-          java-version: '11'
           distribution: 'temurin'
+          java-version: '11'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Dar permisos a Gradle Wrapper
+        run: chmod +x ./gradlew
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew build -x test
+      - name: Compilar proyecto con Gradle
+        run: ./gradlew clean build -x test
 
-      - name: Install OWASP Dependency Check
-        run: |
-          curl -L -o dependency-check.zip https://github.com/dependency-check/DependencyCheck/releases/download/v12.1.0/dependency-check-12.1.0-release.zip
-          unzip dependency-check.zip
+      - name: Construir imagen Docker
+        run: docker build -t pet-clinic:${{ github.sha }} .
 
-      - name: Run SCA with OWASP Dependency Check
-        run: |
-          ./dependency-check/bin/dependency-check.sh \
-            --project "pet-clinic" \
-            --scan "." \
-            --format "HTML" \
-            --out "reports" \
-            --enableRetired \
-            --disableOssIndex \
-            --failOnCVSS 5
-
-      - name: Upload Dependency Check Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: reports
+      - name: Listar imagen Docker generada
+        run: docker images | grep pet-clinic
