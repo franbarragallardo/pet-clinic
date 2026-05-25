@@ -29,7 +29,7 @@ jobs:
         run: docker build -t pet-clinic:latest .
 
       - name: Escanear imagen Docker con Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'pet-clinic:latest'
           format: 'table'
