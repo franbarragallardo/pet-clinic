@@ -1,4 +1,4 @@
-name: Pipeline DevSecOps - Docker Build
+name: Pipeline DevSecOps - Image Security
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - feature/devsecops-pipeline
 
 jobs:
-  DOCKER_BUILD:
+  IMAGE_SECURITY:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +26,14 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Construir imagen Docker
-        run: docker build -t pet-clinic:${{ github.sha }} .
+        run: docker build -t pet-clinic:latest .
 
-      - name: Listar imagen Docker generada
-        run: docker images | grep pet-clinic
+      - name: Escaneo Image Security con Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: 'pet-clinic:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'MEDIUM,HIGH,CRITICAL'
